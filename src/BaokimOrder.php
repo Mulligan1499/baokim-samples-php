@@ -32,7 +32,7 @@ class BaokimOrder
     const ENDPOINT_CREATE_ORDER = '/b2b/core/api/ext/mm/order/send';
     const ENDPOINT_QUERY_ORDER = '/b2b/core/api/ext/mm/order/get-order';
     const ENDPOINT_REFUND_ORDER = '/b2b/core/api/ext/mm/refund/send';
-    const ENDPOINT_CANCEL_AUTO_DEBIT = '/b2b/core/api/ext/mm/order/cancel';
+    const ENDPOINT_CANCEL_AUTO_DEBIT = '/b2b/core/api/ext/mm/autodebit/cancel';
     
     /**
      * Payment methods
@@ -159,26 +159,22 @@ class BaokimOrder
     /**
      * Hủy thu hộ tự động
      * 
-     * @param int $resultCode Trạng thái hủy thu hộ tự động
-     * @param string $resultMessage Message mô tả
-     * @param string $token Token thẻ lưu trên Baokim
-     * @param int $tokenStatus Trạng thái token (1=Active, 0=Deactive)
+     * @param string $token Token thẻ/tài khoản thu hộ tự động (từ webhook khi đăng ký thành công)
+     * @param string|null $urlSuccess URL redirect khi hủy thành công (optional, lấy từ config nếu không truyền)
+     * @param string|null $urlFail URL redirect khi hủy thất bại (optional, lấy từ config nếu không truyền)
      * @return array Response từ Baokim
      * @throws \Exception
      */
-    public function cancelAutoDebit($resultCode, $resultMessage, $token, $tokenStatus = 0)
+    public function cancelAutoDebit($token, $urlSuccess = null, $urlFail = null)
     {
         $requestBody = [
             'request_id' => $this->generateRequestId(),
             'request_time' => date('Y-m-d H:i:s'),
             'master_merchant_code' => Config::get('master_merchant_code'),
             'sub_merchant_code' => Config::get('sub_merchant_code'),
-            'result_code' => (int)$resultCode,
-            'result_message' => $resultMessage,
-            'token_info' => [
-                'token' => $token,
-                'status' => (int)$tokenStatus,
-            ],
+            'url_success' => $urlSuccess ?: Config::get('url_success'),
+            'url_fail' => $urlFail ?: Config::get('url_fail'),
+            'token' => $token,
         ];
         
         return $this->sendRequest(self::ENDPOINT_CANCEL_AUTO_DEBIT, $requestBody);

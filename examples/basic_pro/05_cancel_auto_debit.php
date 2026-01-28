@@ -1,8 +1,11 @@
 <?php
 /**
- * Ví dụ 5: Hủy Thu Hộ Tự Động (Basic Pro)
+ * Ví dụ 5: Hủy Thu Hộ Tự Động (Cancel Auto Debit)
  * 
- * Demo cách sử dụng BaokimOrder để hủy token thẻ lưu
+ * Demo cách sử dụng BaokimOrder để hủy đăng ký thu hộ tự động
+ * 
+ * Lưu ý: Token là mã định danh thẻ/tài khoản thu hộ tự động
+ * được trả về trong webhook khi khách hàng đăng ký thành công
  * 
  * @package Baokim\B2B\Examples
  */
@@ -20,18 +23,11 @@ use Baokim\B2B\ErrorCode;
 
 echo "=== Baokim B2B - Hủy Thu Hộ Tự Động ===\n\n";
 
-// Thông tin hủy (thay bằng dữ liệu thực tế)
-$token = isset($argv[1]) ? $argv[1] : 'TOKEN_STRING_FROM_BAOKIM';
-$resultCode = isset($argv[2]) ? (int)$argv[2] : 0;
-$resultMessage = isset($argv[3]) ? $argv[3] : 'Huy thu ho tu dong theo yeu cau';
-$tokenStatus = 0; // 0=Deactive, 1=Active
+// Token thu hộ tự động (nhận từ webhook khi đăng ký thành công)
+$autoDebitToken = isset($argv[1]) ? $argv[1] : 'YOUR_AUTO_DEBIT_TOKEN';
 
-echo "Token: {$token}\n";
-echo "Result Code: {$resultCode}\n";
-echo "Result Message: {$resultMessage}\n";
-echo "Token Status: " . ($tokenStatus == 1 ? 'Active' : 'Deactive') . "\n\n";
-
-echo "(Sử dụng: php 05_cancel_auto_debit.php TOKEN [RESULT_CODE] [RESULT_MESSAGE])\n\n";
+echo "Token thu hộ tự động: {$autoDebitToken}\n";
+echo "(Sử dụng: php 05_cancel_auto_debit.php YOUR_TOKEN)\n\n";
 
 try {
     // Load config
@@ -47,7 +43,7 @@ try {
     
     echo "Đang gọi API hủy thu hộ tự động...\n\n";
     
-    $result = $orderService->cancelAutoDebit($resultCode, $resultMessage, $token, $tokenStatus);
+    $result = $orderService->cancelAutoDebit($autoDebitToken);
     
     // ============================================================
     // XỬ LÝ KẾT QUẢ
