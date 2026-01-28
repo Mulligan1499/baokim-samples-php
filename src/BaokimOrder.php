@@ -109,6 +109,14 @@ class BaokimOrder
             $requestBody['payment_info'] = $orderData['payment_info'];
         }
         
+        // Các trường optional cho Thu hộ tự động
+        $optionalFields = ['service_code', 'save_token', 'store_code', 'branch_code', 'staff_code'];
+        foreach ($optionalFields as $field) {
+            if (isset($orderData[$field])) {
+                $requestBody[$field] = $orderData[$field];
+            }
+        }
+        
         return $this->sendRequest(self::ENDPOINT_CREATE_ORDER, $requestBody);
     }
     
