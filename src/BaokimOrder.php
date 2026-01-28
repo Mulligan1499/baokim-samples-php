@@ -32,7 +32,7 @@ class BaokimOrder
     const ENDPOINT_CREATE_ORDER = '/b2b/core/api/ext/mm/order/send';
     const ENDPOINT_QUERY_ORDER = '/b2b/core/api/ext/mm/order/get-order';
     const ENDPOINT_REFUND_ORDER = '/b2b/core/api/ext/mm/refund/send';
-    const ENDPOINT_CANCEL_AUTO_DEBIT = '/b2b/core/api/ext/mm/order/cancel-auto-debit';
+    const ENDPOINT_CANCEL_AUTO_DEBIT = '/b2b/core/api/ext/mm/order/cancel';
     
     /**
      * Payment methods
@@ -159,18 +159,26 @@ class BaokimOrder
     /**
      * Hủy thu hộ tự động
      * 
-     * @param string $mrcOrderId Mã đơn hàng của Merchant
+     * @param int $resultCode Trạng thái hủy thu hộ tự động
+     * @param string $resultMessage Message mô tả
+     * @param string $token Token thẻ lưu trên Baokim
+     * @param int $tokenStatus Trạng thái token (1=Active, 0=Deactive)
      * @return array Response từ Baokim
      * @throws \Exception
      */
-    public function cancelAutoDebit($mrcOrderId)
+    public function cancelAutoDebit($resultCode, $resultMessage, $token, $tokenStatus = 0)
     {
         $requestBody = [
             'request_id' => $this->generateRequestId(),
             'request_time' => date('Y-m-d H:i:s'),
             'master_merchant_code' => Config::get('master_merchant_code'),
             'sub_merchant_code' => Config::get('sub_merchant_code'),
-            'mrc_order_id' => $mrcOrderId,
+            'result_code' => (int)$resultCode,
+            'result_message' => $resultMessage,
+            'token_info' => [
+                'token' => $token,
+                'status' => (int)$tokenStatus,
+            ],
         ];
         
         return $this->sendRequest(self::ENDPOINT_CANCEL_AUTO_DEBIT, $requestBody);
