@@ -49,8 +49,7 @@ try {
     $auth = new BaokimAuth();
     $token = $auth->getToken();
     
-    echo "✅ Token: " . substr($token, 0, 50) . "...\n";
-    echo "✅ Expires: " . $auth->getTokenExpiresAt() . "\n\n";
+    echo "✅ Token: " . substr($token, 0, 50) . "...\n\n";
     
     // ============================================================
     // 2. TEST TẠO ĐƠN HÀNG
