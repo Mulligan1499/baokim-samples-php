@@ -2,7 +2,4 @@ run = "php test_full_flow.php"
 entrypoint = "test_full_flow.php"
 
 [nix]
-channel = "stable-24_05"
-
-[deployment]
-run = ["sh", "-c", "php test_full_flow.php"]
+channel = "stable-23_11"
