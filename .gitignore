@@ -1,0 +1,30 @@
+# Baokim B2B PHP7 Example
+
+# Dependencies - không commit
+/vendor/
+
+# Config thực - không commit
+config/config.local.php
+
+# Keys - không commit private key
+keys/merchant_private.pem
+keys/baokim_public.pem
+
+# Logs
+logs/*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+*.tmp
+*.temp
+config/config.backup.php
