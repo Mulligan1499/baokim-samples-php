@@ -1,8 +1,8 @@
-run = "php examples/basic_pro/01_get_token.php"
-entrypoint = "examples/basic_pro/01_get_token.php"
+run = "php test_full_flow.php"
+entrypoint = "test_full_flow.php"
 
 [nix]
 channel = "stable-24_05"
 
 [deployment]
-run = ["sh", "-c", "php examples/basic_pro/01_get_token.php"]
+run = ["sh", "-c", "php test_full_flow.php"]
