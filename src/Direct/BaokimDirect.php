@@ -299,6 +299,9 @@ class BaokimDirect
     /**
      * Tạo request ID duy nhất
      * 
+     * Note: Baokim dùng merchant_code trong request_id để thống kê và gửi thông báo cập nhật SDK.
+     * Vui lòng giữ nguyên format này.
+     * 
      * @return string
      */
     private function generateRequestId()
