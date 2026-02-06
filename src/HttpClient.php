@@ -73,6 +73,25 @@ class HttpClient
     }
     
     /**
+     * Gửi POST request với raw JSON string (không re-encode)
+     * Dùng khi cần đảm bảo JSON gửi đi khớp chính xác với JSON đã ký
+     * 
+     * @param string $endpoint Đường dẫn API
+     * @param string $jsonData JSON string đã encode
+     * @param array $headers Headers bổ sung
+     * @return array
+     */
+    public function postRaw($endpoint, $jsonData, array $headers = [])
+    {
+        $url = $this->buildUrl($endpoint);
+        
+        $allHeaders = array_merge($this->defaultHeaders, $headers);
+        $headerList = $this->formatHeaders($allHeaders);
+        
+        return $this->sendRequest($url, 'POST', $jsonData, $headerList);
+    }
+    
+    /**
      * Gửi GET request
      * 
      * @param string $endpoint Đường dẫn API

@@ -29,13 +29,50 @@ class BaokimAuth
     private $tokenExpiredAt = null;
     
     /**
+     * @var string|null Custom merchant code (for Direct connection)
+     */
+    private $merchantCode = null;
+    
+    /**
+     * @var string|null Custom client ID (for Direct connection)
+     */
+    private $clientId = null;
+    
+    /**
+     * @var string|null Custom client secret (for Direct connection)
+     */
+    private $clientSecret = null;
+    
+    /**
      * Constructor
      * 
      * @param HttpClient|null $httpClient
+     * @param string|null $merchantCode Custom merchant code (for Direct connection)
+     * @param string|null $clientId Custom client ID (for Direct connection)
+     * @param string|null $clientSecret Custom client secret (for Direct connection)
      */
-    public function __construct(HttpClient $httpClient = null)
+    public function __construct(HttpClient $httpClient = null, $merchantCode = null, $clientId = null, $clientSecret = null)
     {
         $this->httpClient = $httpClient ?: new HttpClient();
+        $this->merchantCode = $merchantCode;
+        $this->clientId = $clientId;
+        $this->clientSecret = $clientSecret;
+    }
+    
+    /**
+     * Tạo instance cho Direct connection
+     * 
+     * @param HttpClient|null $httpClient
+     * @return BaokimAuth
+     */
+    public static function forDirectConnection(HttpClient $httpClient = null)
+    {
+        return new self(
+            $httpClient,
+            Config::get('direct_merchant_code') ?: Config::get('merchant_code'),
+            Config::get('direct_client_id'),
+            Config::get('direct_client_secret')
+        );
     }
     
     /**
@@ -82,11 +119,11 @@ class BaokimAuth
     {
         $endpoint = '/b2b/auth-service/api/oauth/get-token';
         
-        // Chuẩn bị request body
+        // Sử dụng custom credentials nếu có, nếu không dùng config mặc định
         $requestBody = [
-            'merchant_code' => Config::get('master_merchant_code'),
-            'client_id' => Config::get('client_id'),
-            'client_secret' => Config::get('client_secret'),
+            'merchant_code' => $this->merchantCode ?: Config::get('master_merchant_code'),
+            'client_id' => $this->clientId ?: Config::get('client_id'),
+            'client_secret' => $this->clientSecret ?: Config::get('client_secret'),
         ];
         
         // Ký request body

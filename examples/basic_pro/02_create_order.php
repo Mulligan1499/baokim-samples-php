@@ -11,7 +11,7 @@ require_once __DIR__ . '/../../src/autoload.php';
 
 use Baokim\B2B\Config;
 use Baokim\B2B\BaokimAuth;
-use Baokim\B2B\BaokimOrder;
+use Baokim\B2B\MasterSub\BaokimOrder;
 use Baokim\B2B\ErrorCode;
 
 // ============================================================
