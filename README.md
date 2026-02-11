@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Baokim B2B API - PHP 7 Example
 
 Bộ source code mẫu tích hợp Baokim B2B API, viết bằng PHP thuần (PHP 7.x), không dependencies.
@@ -269,3 +270,6 @@ if (SignatureHelper::verify($rawBody, $signature)) {
 
 ---
 © 2026 Baokim
+=======
+# baokim-samples-php
+>>>>>>> 8c7f0094ca632b07025b582ba7f6a994d4b8fc53
