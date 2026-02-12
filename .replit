@@ -1,0 +1,5 @@
+run = "php test_full_flow.php"
+entrypoint = "test_full_flow.php"
+
+[nix]
+channel = "stable-23_11"
