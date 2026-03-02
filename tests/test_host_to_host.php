@@ -47,7 +47,7 @@ try {
     // ============================================================
     printSection(2, 5, "TẠO DYNAMIC VA");
     
-    $vaService = new BaokimVA($auth);
+    $vaService = new BaokimVA($token);
     $dynamicOrderId = 'DYN_VA_' . date('YmdHis') . '_' . rand(1000, 9999);
     $amount = 100000;
     

@@ -26,7 +26,7 @@ try {
     
     // Khởi tạo services
     $auth = new BaokimAuth();
-    $orderService = new BaokimOrder($auth);
+    $orderService = new BaokimOrder($auth->getToken());
     
     // ============================================================
     // CHUẨN BỊ DỮ LIỆU ĐƠN HÀNG

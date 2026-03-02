@@ -50,7 +50,7 @@ try {
     // ============================================================
     printSection(2, 6, "TẠO ĐƠN HÀNG THƯỜNG");
     
-    $orderService = new BaokimOrder($auth);
+    $orderService = new BaokimOrder($token);
     $mrcOrderId = 'BASIC_' . date('YmdHis') . '_' . rand(1000, 9999);
     $amount = 100000;
     

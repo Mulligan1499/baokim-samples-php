@@ -35,7 +35,7 @@ try {
     
     // Khởi tạo services
     $auth = new BaokimAuth();
-    $orderService = new BaokimOrder($auth);
+    $orderService = new BaokimOrder($auth->getToken());
     
     // ============================================================
     // GỌI API HỦY THU HỘ TỰ ĐỘNG

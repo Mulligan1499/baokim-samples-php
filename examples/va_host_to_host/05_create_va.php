@@ -26,7 +26,7 @@ try {
     
     // Khởi tạo services
     $auth = new BaokimAuth();
-    $vaService = new BaokimVA($auth);
+    $vaService = new BaokimVA($auth->getToken());
     
     // ============================================================
     // VÍ DỤ 1: TẠO DYNAMIC VA (cho từng đơn hàng)

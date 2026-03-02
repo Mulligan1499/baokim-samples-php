@@ -32,7 +32,7 @@ try {
     
     // Khởi tạo services
     $auth = new BaokimAuth();
-    $vaService = new BaokimVA($auth);
+    $vaService = new BaokimVA($auth->getToken());
     
     // ============================================================
     // CẬP NHẬT THÔNG TIN VA

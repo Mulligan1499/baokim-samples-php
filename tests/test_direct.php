@@ -48,7 +48,7 @@ try {
     // ============================================================
     printSection(2, 5, "TẠO ĐƠN HÀNG (Direct)");
     
-    $directService = new BaokimDirect($auth);
+    $directService = new BaokimDirect($token);
     $mrcOrderId = 'DIRECT_' . date('YmdHis') . '_' . rand(1000, 9999);
     $amount = 100000;
     

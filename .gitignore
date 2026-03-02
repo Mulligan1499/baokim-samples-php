@@ -1,15 +1,14 @@
-<<<<<<< HEAD
 # Baokim B2B PHP7 Example
 
 # Dependencies - không commit
 /vendor/
 
 # Config thực - không commit
-config/config.local.php
+src/config/config.local.php
 
 # Keys - không commit private key
-keys/merchant_private.pem
-keys/baokim_public.pem
+src/keys/merchant_private.pem
+src/keys/baokim_public.pem
 
 # Logs
 logs/*.log
@@ -28,36 +27,3 @@ Thumbs.db
 # Temp
 *.tmp
 *.temp
-config/config.backup.php
-=======
-/vendor/
-node_modules/
-npm-debug.log
-yarn-error.log
-
-# Laravel 4 specific
-bootstrap/compiled.php
-app/storage/
-
-# Laravel 5 & Lumen specific
-public/storage
-public/hot
-
-# Laravel 5 & Lumen specific with changed public path
-public_html/storage
-public_html/hot
-
-storage/*.key
-.env
-Homestead.yaml
-Homestead.json
-/.vagrant
-.phpunit.result.cache
-
-/public/build
-/storage/pail
-.env.backup
-.env.production
-.phpactor.json
-auth.json
->>>>>>> 8c7f0094ca632b07025b582ba7f6a994d4b8fc53

@@ -71,7 +71,7 @@ try {
         echo "🔷 BASIC/PRO (MasterSub) TESTS\n";
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
         
-        $orderService = new BaokimOrder($auth);
+        $orderService = new BaokimOrder($token);
         $mrcOrderId = 'TEST_' . date('YmdHis') . '_' . rand(1000, 9999);
         
         // Create Order
@@ -111,7 +111,7 @@ try {
         echo "🔷 HOST-TO-HOST (VA) TESTS\n";
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
         
-        $vaService = new BaokimVA($auth);
+        $vaService = new BaokimVA($token);
         
         // Create Dynamic VA
         $vaOrderId = 'DVA' . date('mdHis') . rand(100, 999);
@@ -146,9 +146,10 @@ try {
         echo "🔷 DIRECT CONNECTION TESTS\n";
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
         
-        // Direct connection uses different credentials
+        // Direct connection uses different credentials to get token
         $directAuth = BaokimAuth::forDirectConnection();
-        $directService = new BaokimDirect($directAuth);
+        $directToken = $directAuth->getToken();
+        $directService = new BaokimDirect($directToken);
         $directOrderId = 'DRT' . date('mdHis') . rand(100, 999);
         
         // Create Order

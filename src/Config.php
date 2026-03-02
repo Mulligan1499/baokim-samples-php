@@ -32,8 +32,8 @@ class Config
     {
         if ($configPath === null) {
             // Ưu tiên file config.local.php nếu có
-            $localConfigPath = __DIR__ . '/../config/config.local.php';
-            $defaultConfigPath = __DIR__ . '/../config/config.php';
+            $localConfigPath = __DIR__ . '/config/config.local.php';
+            $defaultConfigPath = __DIR__ . '/config/config.php';
             
             if (file_exists($localConfigPath)) {
                 $configPath = $localConfigPath;

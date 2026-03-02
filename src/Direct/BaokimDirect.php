@@ -30,9 +30,9 @@ class BaokimDirect
     private $httpClient;
     
     /**
-     * @var BaokimAuth
+     * @var string|null
      */
-    private $auth;
+    private $token;
     
     /**
      * API Endpoints cho Direct Connection
@@ -55,12 +55,12 @@ class BaokimDirect
     /**
      * Constructor
      * 
-     * @param BaokimAuth|null $auth
+     * @param string|null $token Access token string. Nếu null, SDK tự gọi API lấy token mới.
      * @param HttpClient|null $httpClient
      */
-    public function __construct(BaokimAuth $auth = null, HttpClient $httpClient = null)
+    public function __construct($token = null, HttpClient $httpClient = null)
     {
-        $this->auth = $auth ?: new BaokimAuth();
+        $this->token = $token;
         $this->httpClient = $httpClient ?: new HttpClient();
     }
     
@@ -264,7 +264,11 @@ class BaokimDirect
     private function sendRequest($endpoint, array $requestBody)
     {
         // Lấy access token
-        $authHeader = $this->auth->getAuthorizationHeader();
+        if (!$this->token) {
+            $auth = BaokimAuth::forDirectConnection();
+            $this->token = $auth->getToken();
+        }
+        $authHeader = "Bearer {$this->token}";
         
         // Ký request body - encode JSON một lần duy nhất
         $jsonBody = json_encode($requestBody, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);

@@ -1,239 +1,331 @@
-<<<<<<< HEAD
-# Baokim B2B API - PHP 7 Example
+# Baokim B2B API - PHP 7 SDK
 
-Bộ source code mẫu tích hợp Baokim B2B API, viết bằng PHP thuần (PHP 7.x), không dependencies.
+Bộ SDK tích hợp Baokim B2B API, viết bằng PHP thuần (PHP 7.x), không dependencies.
 
 ## 🔧 Yêu cầu
 - PHP 7.0+
 - Extensions: `curl`, `openssl`, `json`
 
-## 📦 Cài đặt
+---
+
+## 📦 Tích hợp vào project của bạn
+
+### Bước 1: Clone SDK
 
 ```bash
-git clone https://github.com/Mulligan1499/baokim-b2b-php-example.git
-cd baokim-b2b-php-example
-cp config/config.php config/config.local.php
+git clone https://github.com/ITBaoKim/baokim-samples-php.git
 ```
 
-Chỉnh sửa `config/config.local.php` với thông tin Baokim cung cấp:
-- `client_id`, `client_secret` - Thông tin OAuth2
-- `merchant_code`, `master_merchant_code`, `sub_merchant_code`
-- Đặt file `merchant_private.pem` vào thư mục `keys/`
-
-## 🚀 Quick Start
+### Bước 2: Copy thư mục `src/` vào project
 
 ```bash
-# Test tất cả APIs
-php test_full_flow.php
+cp -r baokim-samples-php/src /path/to/your-project/baokim-sdk
+```
 
-# Test từng loại connection
-php test_full_flow.php basic_pro
-php test_full_flow.php host_to_host
-php test_full_flow.php direct
+Thư mục `src/` đã bao gồm sẵn config và keys, bạn chỉ cần copy 1 folder duy nhất:
+
+```
+your-project/
+├── baokim-sdk/           # Chỉ cần copy folder src/ này
+│   ├── autoload.php
+│   ├── BaokimAuth.php
+│   ├── Config.php
+│   ├── HttpClient.php
+│   ├── config/           # ← Config nằm sẵn trong SDK
+│   │   ├── config.php    # Template config
+│   │   └── config.local.php  # Config thật (bạn tạo ở bước 3)
+│   ├── keys/             # ← Keys nằm sẵn trong SDK
+│   │   └── merchant_private.pem
+│   ├── MasterSub/
+│   │   └── BaokimOrder.php
+│   ├── HostToHost/
+│   │   └── BaokimVA.php
+│   └── Direct/
+│       └── BaokimDirect.php
+├── logs/                 # Thư mục log (tự tạo)
+└── your-code.php
+```
+
+### Bước 3: Cấu hình
+
+1. Copy file config template:
+```bash
+cp baokim-sdk/config/config.php baokim-sdk/config/config.local.php
+```
+
+2. Mở `baokim-sdk/config/config.local.php` và điền thông tin Baokim cung cấp:
+```php
+<?php
+return [
+    'base_url' => 'https://devtest.baokim.vn',  // hoặc https://openapi.baokim.vn
+    'timeout' => 30,
+    
+    'merchant_code' => 'YOUR_MERCHANT_CODE',
+    'client_id' => 'YOUR_CLIENT_ID',
+    'client_secret' => 'YOUR_CLIENT_SECRET',
+    
+    'master_merchant_code' => 'YOUR_MASTER_MERCHANT_CODE',
+    'sub_merchant_code' => 'YOUR_SUB_MERCHANT_CODE',
+    
+    // RSA Keys (đường dẫn tương đối từ thư mục config/)
+    'merchant_private_key_path' => __DIR__ . '/../keys/merchant_private.pem',
+    'baokim_public_key_path' => __DIR__ . '/../keys/baokim_public.pem',
+    
+    // Webhook URLs
+    'url_success' => 'https://your-domain.com/payment/success',
+    'url_fail' => 'https://your-domain.com/payment/fail',
+    'webhook_url' => 'https://your-domain.com/webhook/baokim',
+];
+```
+
+### Bước 4: Đặt RSA Keys
+
+Đặt file Private Key (Baokim cung cấp) vào `baokim-sdk/keys/`:
+```bash
+# Copy merchant_private.pem vào baokim-sdk/keys/
+```
+
+### Bước 5: Tạo thư mục logs
+
+```bash
+mkdir -p logs
 ```
 
 ---
 
-## 📖 Hướng dẫn sử dụng
+## 🚀 Sử dụng SDK
 
-### Bước 1: Include autoload
+### Khởi tạo (bắt buộc ở đầu mỗi file)
+
 ```php
-require_once __DIR__ . '/src/autoload.php';
+<?php
+require_once __DIR__ . '/baokim-sdk/autoload.php';
 
-use Baokim\B2B\Config;
 use Baokim\B2B\BaokimAuth;
-use Baokim\B2B\MasterSub\BaokimOrder;
-use Baokim\B2B\HostToHost\BaokimVA;
-use Baokim\B2B\Direct\BaokimDirect;
 
-// Load config
-Config::load(__DIR__ . '/config/config.local.php');
+// Khởi tạo Auth
+$auth = new BaokimAuth();
 ```
 
-### Bước 2: Khởi tạo Authentication
+> **💡 Ghi chú về Token:**  
+> Mỗi lần `new BaokimAuth()` sẽ tạo một instance mới. Khi gọi API lần đầu, SDK tự động lấy token từ Baokim.  
+> Trong cùng 1 script, nếu bạn truyền cùng `$auth` cho nhiều service, token sẽ được tái sử dụng (không gọi API lại).  
+> Nếu bạn cần tối ưu performance cho production (ví dụ: cache token vào Redis/Session), hãy liên hệ Baokim để được hỗ trợ.
+
+---
+
+## 🔷 API 1: Lấy Access Token
+
 ```php
-// Lấy token (tự động cache, không cần gọi lại)
+<?php
+require_once __DIR__ . '/baokim-sdk/autoload.php';
+
+use Baokim\B2B\BaokimAuth;
+
 $auth = new BaokimAuth();
 $token = $auth->getToken();
+
+echo "Token: " . substr($token, 0, 50) . "...\n";
+echo "Hết hạn lúc: " . date('Y-m-d H:i:s', $auth->getTokenInfo()['expired_at']) . "\n";
+```
+
+```bash
+php 01_get_token.php
 ```
 
 ---
 
-## 🔷 Basic/Pro - Thanh toán qua Master/Sub Merchant
+## 🔷 API 2: Tạo đơn hàng (Basic Pro - Master/Sub)
 
-**Class:** `BaokimOrder`
-
-### Tạo đơn hàng
 ```php
-$orderService = new BaokimOrder($auth);
+<?php
+require_once __DIR__ . '/baokim-sdk/autoload.php';
+
+use Baokim\B2B\BaokimAuth;
+use Baokim\B2B\MasterSub\BaokimOrder;
+
+$auth = new BaokimAuth();
+$token = $auth->getToken();
+$orderService = new BaokimOrder($token);
+
+$mrcOrderId = 'ORDER_' . date('YmdHis') . '_' . rand(1000, 9999);
 
 $result = $orderService->createOrder([
-    'mrc_order_id' => 'ORDER_' . time(),      // Mã đơn hàng của bạn (bắt buộc)
-    'total_amount' => 100000,                  // Số tiền (bắt buộc)
-    'description' => 'Thanh toán đơn hàng',    // Mô tả (bắt buộc)
-    'payment_method' => 1,                     // 1=VA, 6=VNPay QR (tùy chọn)
-]);
+    'mrc_order_id' => $mrcOrderId,
+    'total_amount' => 100000,
+    'description' => 'Thanh toan don hang ' . $mrcOrderId,
+    'customer_info' => BaokimOrder::buildCustomerInfo(
+        'Nguyen Van A', 'test@email.com', '0901234567', '123 Street'
+    )
+    ]);
 
-if ($result['success']) {
-    $paymentUrl = $result['data']['payment_url'];
-    echo "Chuyển khách hàng đến: $paymentUrl";
+echo "Success: " . ($result['success'] ? 'TRUE' : 'FALSE') . "\n";
+if ($result['success'] && isset($result['data']['payment_url'])) {
+    echo "Payment URL: " . $result['data']['payment_url'] . "\n";
 }
+print_r($result);
 ```
 
-### Tra cứu đơn hàng
-```php
-$result = $orderService->queryOrder('ORDER_123456');
-```
-
-### Hoàn tiền
-```php
-$result = $orderService->refundOrder([
-    'order_id' => 123456,        // order_id từ Baokim
-    'refund_amount' => 50000,    // Số tiền hoàn
-    'description' => 'Hoàn tiền cho khách',
-]);
-```
-
-### Thu hộ tự động (Auto Debit)
-```php
-$result = $orderService->createAutoDebitOrder([
-    'mrc_order_id' => 'AD_' . time(),
-    'total_amount' => 200000,
-    'description' => 'Thu hộ tự động',
-    'phone_no' => '0901234567',
-]);
+```bash
+php 02_create_order.php
 ```
 
 ---
 
-## 🔷 Host-to-Host - Virtual Account (VA)
+## 🔷 API 3: Tra cứu đơn hàng
 
-**Class:** `BaokimVA`
-
-### Tạo VA động (mỗi đơn hàng 1 VA riêng)
 ```php
-$vaService = new BaokimVA($auth);
+<?php
+require_once __DIR__ . '/baokim-sdk/autoload.php';
+
+use Baokim\B2B\BaokimAuth;
+use Baokim\B2B\MasterSub\BaokimOrder;
+
+$auth = new BaokimAuth();
+$token = $auth->getToken();
+$orderService = new BaokimOrder($token);
+
+$mrcOrderId = $argv[1] ?? 'ORDER_TEST';
+$result = $orderService->queryOrder($mrcOrderId);
+
+echo "Success: " . ($result['success'] ? 'TRUE' : 'FALSE') . "\n";
+print_r($result);
+```
+
+```bash
+php 03_query_order.php ORDER_20260224120000_1234
+```
+
+---
+
+## 🔷 API 4: Hoàn tiền (Refund)
+
+```php
+<?php
+require_once __DIR__ . '/baokim-sdk/autoload.php';
+
+use Baokim\B2B\BaokimAuth;
+use Baokim\B2B\MasterSub\BaokimOrder;
+
+$auth = new BaokimAuth();
+$token = $auth->getToken();
+$orderService = new BaokimOrder($token);
+
+$mrcOrderId = $argv[1] ?? 'ORDER_TEST';
+$refundAmount = isset($argv[2]) ? (int)$argv[2] : 0;
+
+$result = $orderService->refundOrder($mrcOrderId, $refundAmount, 'Hoan tien cho khach');
+
+echo "Success: " . ($result['success'] ? 'TRUE' : 'FALSE') . "\n";
+print_r($result);
+```
+
+```bash
+php 04_refund_order.php ORDER_ID 50000
+```
+
+---
+
+## 🔷 API 5: Tạo Virtual Account - VA (Host-to-Host)
+
+```php
+<?php
+require_once __DIR__ . '/baokim-sdk/autoload.php';
+
+use Baokim\B2B\BaokimAuth;
+use Baokim\B2B\HostToHost\BaokimVA;
+
+$auth = new BaokimAuth();
+$token = $auth->getToken();
+$vaService = new BaokimVA($token);
+
+$orderId = 'VA_' . date('YmdHis');
 
 $result = $vaService->createDynamicVA(
-    'NGUYEN VAN A',           // Tên khách hàng
-    'ORDER_123',              // Mã đơn hàng
-    100000                    // Số tiền cần thu
+    'NGUYEN VAN A',    // Tên khách hàng
+    $orderId,          // Mã đơn hàng
+    100000             // Số tiền
 );
 
-if ($result['success']) {
-    echo "Số VA: " . $result['data']['acc_no'];
-    echo "QR Code: " . $result['data']['qr_path'];
+echo "Success: " . ($result['success'] ? 'TRUE' : 'FALSE') . "\n";
+if ($result['success'] && isset($result['data']['acc_no'])) {
+    echo "Số VA: " . $result['data']['acc_no'] . "\n";
 }
+print_r($result);
 ```
 
-### Tạo VA tĩnh (1 VA dùng nhiều lần)
-```php
-$result = $vaService->createStaticVA(
-    'TRAN VAN B',                    // Tên khách hàng
-    'CUSTOMER_001',                  // Mã định danh khách
-    '2026-12-31 23:59:59',           // Ngày hết hạn
-    10000,                           // Số tiền tối thiểu
-    10000000                         // Số tiền tối đa
-);
+```bash
+php 05_create_va.php
 ```
 
-### Tra cứu giao dịch VA
+---
+
+## 🔷 API 6: Tra cứu giao dịch VA
+
 ```php
+<?php
+require_once __DIR__ . '/baokim-sdk/autoload.php';
+
+use Baokim\B2B\BaokimAuth;
+use Baokim\B2B\HostToHost\BaokimVA;
+
+$auth = new BaokimAuth();
+$token = $auth->getToken();
+$vaService = new BaokimVA($token);
+
 $result = $vaService->queryTransaction([
-    'acc_no' => '00812345678901',    // Số VA
+    'acc_no' => '00812345678901',   // Thay bằng số VA thật từ API 5
 ]);
+
+echo "Success: " . ($result['success'] ? 'TRUE' : 'FALSE') . "\n";
+print_r($result);
+```
+
+```bash
+php 06_query_va.php
 ```
 
 ---
 
-## 🔷 Direct Connection - Không qua Master Merchant
+## 🔷 API 7: Tạo đơn hàng Direct Connection
 
-**Class:** `BaokimDirect`
+> ⚠️ Direct connection sử dụng credentials riêng (`direct_client_id`, `direct_client_secret`). Thêm vào config nếu có.
 
-> ⚠️ Direct connection cần credentials riêng, cấu hình trong `direct_client_id`, `direct_client_secret`
-
-### Khởi tạo với Direct credentials
 ```php
+<?php
+require_once __DIR__ . '/baokim-sdk/autoload.php';
+
+use Baokim\B2B\BaokimAuth;
+use Baokim\B2B\Direct\BaokimDirect;
+
+// Direct connection dùng credentials riêng
 $directAuth = BaokimAuth::forDirectConnection();
-$directService = new BaokimDirect($directAuth);
-```
+$directToken = $directAuth->getToken();
+$directService = new BaokimDirect($directToken);
 
-### Tạo đơn hàng Direct
-```php
+$mrcOrderId = 'DRT_' . date('YmdHis') . '_' . rand(1000, 9999);
+
 $result = $directService->createOrder([
-    'mrc_order_id' => 'DRT_' . time(),
+    'mrc_order_id' => $mrcOrderId,
     'total_amount' => 150000,
-    'description' => 'Thanh toán Direct',
-    'customer_info' => [
-        'name' => 'NGUYEN VAN A',
-        'email' => 'customer@email.com',
-        'phone' => '0901234567',
-        'address' => '123 Nguyen Hue, HCM',
-        'gender' => 1,
-    ],
+    'description' => 'Thanh toan Direct ' . $mrcOrderId,
+    'customer_info' => BaokimDirect::buildCustomerInfo(
+        'Nguyen Van A', 'customer@email.com', '0901234567', '123 Nguyen Hue'
+    ),
 ]);
 
-if ($result['success']) {
-    echo "Payment URL: " . $result['data']['payment_url'];
+echo "Success: " . ($result['success'] ? 'TRUE' : 'FALSE') . "\n";
+if ($result['success'] && isset($result['data']['payment_url'])) {
+    echo "Payment URL: " . $result['data']['payment_url'] . "\n";
 }
+print_r($result);
 ```
 
-### Tra cứu đơn hàng
-```php
-$result = $directService->queryOrder('DRT_123456');
+```bash
+php 07_direct_order.php
 ```
 
 ---
-
-## 🔔 Webhook - Nhận thông báo từ Baokim
-
-```php
-// webhook_receiver.php
-require_once __DIR__ . '/src/autoload.php';
-
-use Baokim\B2B\SignatureHelper;
-
-$rawBody = file_get_contents('php://input');
-$signature = $_SERVER['HTTP_SIGNATURE'] ?? '';
-
-// Verify signature
-if (SignatureHelper::verify($rawBody, $signature)) {
-    $data = json_decode($rawBody, true);
-    
-    // Xử lý thông báo
-    $orderId = $data['mrc_order_id'];
-    $status = $data['status'];
-    
-    // Cập nhật trạng thái đơn hàng trong hệ thống của bạn
-    // ...
-    
-    echo json_encode(['code' => 0, 'message' => 'OK']);
-} else {
-    http_response_code(400);
-    echo json_encode(['code' => 1, 'message' => 'Invalid signature']);
-}
-```
-
----
-
-## 📁 Cấu trúc thư mục
-
-```
-├── config/                     # Cấu hình
-│   ├── config.php              # Template
-│   └── config.local.php        # Config thực (không commit)
-├── src/                        # Core modules
-│   ├── MasterSub/              # Basic/Pro APIs
-│   │   └── BaokimOrder.php
-│   ├── HostToHost/             # VA Host-to-Host APIs
-│   │   └── BaokimVA.php
-│   └── Direct/                 # Direct Connection APIs
-│       └── BaokimDirect.php
-├── keys/                       # RSA Keys
-│   └── merchant_private.pem    # Private key của bạn
-├── logs/                       # Log files
-└── test_full_flow.php          # Test tất cả APIs
-```
 
 ## 📚 API Endpoints
 
@@ -267,9 +359,7 @@ if (SignatureHelper::verify($rawBody, $signature)) {
 | `Chữ ký số không hợp lệ` | Private key không đúng | Kiểm tra file `keys/merchant_private.pem` |
 | `Token expired` | Token hết hạn | SDK tự động refresh, không cần xử lý |
 | `Invalid merchant_code` | Sai mã merchant | Kiểm tra config |
+| `Config file not found` | Chưa tạo config.local.php | Copy từ config.php và điền thông tin |
 
 ---
 © 2026 Baokim
-=======
-# baokim-samples-php
->>>>>>> 8c7f0094ca632b07025b582ba7f6a994d4b8fc53

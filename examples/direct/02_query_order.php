@@ -32,7 +32,7 @@ try {
     
     // Khởi tạo services
     $auth = new BaokimAuth();
-    $directService = new BaokimDirect($auth);
+    $directService = new BaokimDirect($auth->getToken());
     
     // ============================================================
     // GỌI API TRA CỨU
