@@ -3,8 +3,9 @@
  * Cấu hình kết nối Baokim B2B API
  * 
  * Hướng dẫn:
- * 1. Điền các thông tin được Baokim cung cấp vào file này
- * 2. KHÔNG commit file này lên git nếu chứa thông tin thật
+ * 1. Copy file này thành config.local.php
+ * 2. Điền các thông tin được Baokim cung cấp
+ * 3. KHÔNG commit file config.local.php lên git
  */
 
 return [
@@ -31,17 +32,17 @@ return [
     /**
      * Mã Merchant được Baokim cung cấp
      */
-    'merchant_code' => 'YOUR_MERCHANT_CODE',
+    'merchant_code' => 'b2bthiither127',
     
     /**
      * Client ID cho OAuth2
      */
-    'client_id' => 'YOUR_CLIENT_ID',
+    'client_id' => 'mmthiither22',
     
     /**
      * Client Secret cho OAuth2
      */
-    'client_secret' => 'YOUR_CLIENT_SECRET',
+    'client_secret' => 'vpp6yTe4%BbnMdP7it2Dz0x3IOzrxUVu',
     
     // ==================================================
     // THÔNG TIN MASTER/SUB MERCHANT (cho mô hình Master MRC)
@@ -50,12 +51,32 @@ return [
     /**
      * Mã Master Merchant (nếu là mô hình Master MRC)
      */
-    'master_merchant_code' => 'YOUR_MASTER_MERCHANT_CODE',
+    'master_merchant_code' => 'mmthiither22',
     
     /**
      * Mã Sub Merchant (nếu là mô hình Master MRC)
      */
-    'sub_merchant_code' => 'YOUR_SUB_MERCHANT_CODE',
+    'sub_merchant_code' => 'b2bthiither127',
+    
+    // ==================================================
+    // THÔNG TIN DIRECT CONNECTION (không qua Master MRC)
+    // ==================================================
+    
+    /**
+     * Mã Merchant cho Direct connection
+     */
+    'direct_merchant_code' => 'b2bthiither127',
+    
+    /**
+     * Client ID cho Direct connection OAuth2
+     * (khác với client_id của Master)
+     */
+    'direct_client_id' => 'b2bthiither127',
+    
+    /**
+     * Client Secret cho Direct connection OAuth2
+     */
+    'direct_client_secret' => 'vEy!xYnlpO41!2%XCXKHsjHhERLf2obZ',
     
     // ==================================================
     // CẤU HÌNH CHỮ KÝ SỐ (RSA)
@@ -82,15 +103,15 @@ return [
     /**
      * URL callback khi thanh toán thành công
      */
-    'url_success' => 'https://your-domain.com/payment/success',
+    'url_success' => 'https://webhook.site/2f5fd254-547f-4238-a251-af771b61bf44',
     
     /**
      * URL callback khi thanh toán thất bại
      */
-    'url_fail' => 'https://your-domain.com/payment/fail',
+    'url_fail' => 'https://webhook.site/2f5fd254-547f-4238-a251-af771b61bf44',
     
     /**
      * URL nhận webhook từ Baokim (gửi cho Baokim cấu hình)
      */
-    'webhook_url' => 'https://your-domain.com/webhook/baokim',
+    'webhook_url' => 'https://webhook.site/2f5fd254-547f-4238-a251-af771b61bf44',
 ];

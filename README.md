@@ -32,10 +32,10 @@ your-project/
 │   ├── Config.php
 │   ├── HttpClient.php
 │   ├── config/           # ← Config nằm sẵn trong SDK
-│   │   ├── config.php    # Template config
-│   │   └── config.local.php  # Config thật (bạn tạo ở bước 3)
+│   │   └── config.php    # File cấu hình (điền thông tin ở bước 3)
 │   ├── keys/             # ← Keys nằm sẵn trong SDK
-│   │   └── merchant_private.pem
+│   │   ├── merchant_private.pem
+│   │   └── baokim_public.pem
 │   ├── MasterSub/
 │   │   └── BaokimOrder.php
 │   ├── HostToHost/
@@ -48,12 +48,7 @@ your-project/
 
 ### Bước 3: Cấu hình
 
-1. Copy file config template:
-```bash
-cp baokim-sdk/config/config.php baokim-sdk/config/config.local.php
-```
-
-2. Mở `baokim-sdk/config/config.local.php` và điền thông tin Baokim cung cấp:
+Mở file `baokim-sdk/config/config.php` và điền thông tin Baokim cung cấp:
 ```php
 <?php
 return [
@@ -324,6 +319,77 @@ print_r($result);
 ```bash
 php 07_direct_order.php
 ```
+---
+
+## 🔷 API 8: Xử lý Webhook từ Baokim (Verify Signature)
+
+Khi có giao dịch thành công (thanh toán, hoàn tiền, VA...), **Baokim sẽ gửi HTTP POST** đến webhook URL của merchant.
+
+### Cấu hình
+
+Đặt file **Baokim Public Key** (do Baokim cung cấp) vào `baokim-sdk/keys/baokim_public.pem`.
+
+### Code example
+
+```php
+<?php
+require_once __DIR__ . '/baokim-sdk/autoload.php';
+
+use Baokim\B2B\Config;
+use Baokim\B2B\WebhookHandler;
+
+try {
+    Config::load();
+    
+    $handler = new WebhookHandler();
+    
+    // Xử lý thanh toán thành công
+    $handler->onPayment(function($paymentData, $fullPayload) {
+        // VA payment
+        if (isset($paymentData['transaction'])) {
+            $transaction = $paymentData['transaction'];
+            $mrcOrderId = $transaction['mrc_order_id'] ?? null;
+            $amount = $transaction['amount'] ?? 0;
+            
+            // TODO: Cập nhật trạng thái đơn hàng trong database
+            error_log("VA Payment: order={$mrcOrderId}, amount={$amount}");
+        }
+        
+        // Basic Pro payment
+        if (isset($paymentData['order'])) {
+            $mrcOrderId = $paymentData['order']['mrc_order_id'] ?? null;
+            // TODO: Cập nhật trạng thái đơn hàng trong database
+            error_log("Order Payment: order={$mrcOrderId}");
+        }
+        
+        return null; // Dùng default success response
+    });
+    
+    // Xử lý hoàn tiền
+    $handler->onRefund(function($refundData, $fullPayload) {
+        $mrcOrderId = $refundData['order']['mrc_order_id'] ?? null;
+        // TODO: Cập nhật trạng thái hoàn tiền
+        error_log("Refund: order={$mrcOrderId}");
+        return null;
+    });
+    
+    // Xử lý webhook (tự động verify signature)
+    $response = $handler->handle(true);
+    $handler->sendResponse($response);
+    
+} catch (\Exception $e) {
+    error_log("Webhook Error: " . $e->getMessage());
+    header('Content-Type: application/json');
+    echo json_encode(['code' => 500, 'message' => 'Internal server error']);
+}
+```
+
+### Response format
+
+Merchant cần trả về JSON với `code = 0` khi xử lý thành công:
+```json
+{"code": 0, "message": "Success"}
+```
 
 ---
 
@@ -359,7 +425,10 @@ php 07_direct_order.php
 | `Chữ ký số không hợp lệ` | Private key không đúng | Kiểm tra file `keys/merchant_private.pem` |
 | `Token expired` | Token hết hạn | SDK tự động refresh, không cần xử lý |
 | `Invalid merchant_code` | Sai mã merchant | Kiểm tra config |
-| `Config file not found` | Chưa tạo config.local.php | Copy từ config.php và điền thông tin |
+| `Config file not found` | Chưa cấu hình config.php | Mở file `config.php` và điền thông tin |
+| `Signature header not found` | Webhook thiếu header Signature | Kiểm tra Baokim đã gửi header `Signature` |
+| `Invalid signature` | Chữ ký webhook không hợp lệ | Kiểm tra file `keys/baokim_public.pem` |
+| `Public key file not found` | Chưa có Baokim public key | Đặt public key vào `keys/baokim_public.pem` |
 
 ---
 © 2026 Baokim

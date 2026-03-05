@@ -8,8 +8,8 @@
 3. Paste URL: `https://github.com/Mulligan1499/baokim-b2b-php-example`
 4. Chọn **Language**: PHP CLI
 
-### Bước 2: Tạo file cấu hình
-Tạo file `config/config.local.php` với nội dung:
+### Bước 2: Cấu hình
+Mở file `src/config/config.php` và điền thông tin:
 
 ```php
 <?php
@@ -62,8 +62,7 @@ php examples/va_host_to_host/07_query_transaction.php VA_NUMBER
 
 ```
 ├── config/
-│   ├── config.php           # Config mẫu
-│   └── config.local.php     # Config thực (tạo thủ công)
+│   └── config.php           # Config thực (chỉnh sửa trực tiếp)
 ├── examples/
 │   ├── basic_pro/
 │   │   ├── 01_get_token.php

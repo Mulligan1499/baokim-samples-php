@@ -4,7 +4,7 @@
 /vendor/
 
 # Config thực - không commit
-src/config/config.local.php
+src/config/config.php
 
 # Keys - không commit private key
 src/keys/merchant_private.pem

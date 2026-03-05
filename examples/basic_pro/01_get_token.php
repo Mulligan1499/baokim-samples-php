@@ -21,7 +21,7 @@ use Baokim\B2B\ErrorCode;
 echo "=== Baokim B2B - Lấy Access Token ===\n\n";
 
 try {
-    // Load config (tự động tìm config.local.php hoặc config.php)
+    // Load config (tự động tìm config.php trong thư mục src/config/)
     Config::load();
     
     echo "1. Config đã load từ: " . Config::get('base_url') . "\n";

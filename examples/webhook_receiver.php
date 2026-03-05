@@ -111,7 +111,6 @@ try {
     
     // Xử lý webhook (tự động verify signature)
     $response = $handler->handle(true);
-    
     // Gửi response về cho Baokim
     $handler->sendResponse($response);
     

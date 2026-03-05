@@ -31,16 +31,10 @@ class Config
     public static function load($configPath = null)
     {
         if ($configPath === null) {
-            // Ưu tiên file config.local.php nếu có
-            $localConfigPath = __DIR__ . '/config/config.local.php';
-            $defaultConfigPath = __DIR__ . '/config/config.php';
+            $configPath = __DIR__ . '/config/config.php';
             
-            if (file_exists($localConfigPath)) {
-                $configPath = $localConfigPath;
-            } elseif (file_exists($defaultConfigPath)) {
-                $configPath = $defaultConfigPath;
-            } else {
-                throw new \Exception('Config file not found. Please create config/config.php');
+            if (!file_exists($configPath)) {
+                throw new \Exception('Config file not found. Please check config/config.php');
             }
         }
         
