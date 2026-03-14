@@ -54,7 +54,7 @@ Mở file `baokim-sdk/config/config.php` và điền thông tin Baokim cung cấ
 ```php
 <?php
 return [
-    'base_url' => 'https://devtest.baokim.vn',  // hoặc https://openapi.baokim.vn
+    'base_url' => 'https://devtest.baokim.vn',  // hoặc https://bws.baokim.vn
     'timeout' => 30,
     
     'merchant_code' => 'YOUR_MERCHANT_CODE',
@@ -77,7 +77,7 @@ return [
 
 > [!IMPORTANT]
 > **Lưu ý lên môi trường Production:**
-> - Thay `base_url` thành `https://openapi.baokim.vn`.
+> - Thay `base_url` thành `https://bws.baokim.vn`.
 > - Thay đổi các thông tin `merchant_code`, `client_id`, `client_secret` sang thông tin môi trường Production do Baokim cung cấp.
 > - Cập nhật cặp RSA Keys (Private Key của Merchant và Public Key của Baokim) tương ứng với môi trường Production.
 
