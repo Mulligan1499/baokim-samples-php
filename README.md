@@ -40,8 +40,10 @@ your-project/
 │   │   └── BaokimOrder.php
 │   ├── HostToHost/
 │   │   └── BaokimVA.php
-│   └── Direct/
-│       └── BaokimDirect.php
+│   ├── Direct/
+│   │   └── BaokimDirect.php
+│   └── MerchantHosted/
+│       └── BaokimMerchantVA.php
 ├── logs/                 # Thư mục log (tự tạo)
 └── your-code.php
 ```
@@ -72,6 +74,12 @@ return [
     'webhook_url' => 'https://your-domain.com/webhook/baokim',
 ];
 ```
+
+> [!IMPORTANT]
+> **Lưu ý lên môi trường Production:**
+> - Thay `base_url` thành `https://openapi.baokim.vn`.
+> - Thay đổi các thông tin `merchant_code`, `client_id`, `client_secret` sang thông tin môi trường Production do Baokim cung cấp.
+> - Cập nhật cặp RSA Keys (Private Key của Merchant và Public Key của Baokim) tương ứng với môi trường Production.
 
 ### Bước 4: Đặt RSA Keys
 
@@ -321,6 +329,119 @@ php 07_direct_order.php
 ```
 ---
 
+## 🔷 API 9: Tạo Virtual Account - VA (Merchant Hosted / Direct)
+
+> ⚠️ Merchant Hosted dùng credentials riêng (`direct_client_id`, `direct_client_secret`).
+> Khác với Host-to-Host (Master/Sub), Merchant Hosted dùng `merchant_code` thay vì `master_merchant_code` + `sub_merchant_code`.
+
+```php
+<?php
+require_once __DIR__ . '/baokim-sdk/autoload.php';
+
+use Baokim\B2B\BaokimAuth;
+use Baokim\B2B\MerchantHosted\BaokimMerchantVA;
+
+// Merchant Hosted dùng Direct connection credentials
+$directAuth = BaokimAuth::forDirectConnection();
+$directToken = $directAuth->getToken();
+$vaService = new BaokimMerchantVA($directToken);
+
+$orderId = 'MH_VA_' . date('YmdHis');
+
+$result = $vaService->createDynamicVA(
+    'NGUYEN VAN A',    // Tên khách hàng
+    $orderId,          // Mã đơn hàng
+    100000             // Số tiền
+);
+
+echo "Success: " . ($result['success'] ? 'TRUE' : 'FALSE') . "\n";
+if ($result['success'] && isset($result['data']['acc_no'])) {
+    echo "Số VA: " . $result['data']['acc_no'] . "\n";
+}
+print_r($result);
+```
+
+### Tạo VA với đầy đủ options
+
+```php
+$result = $vaService->createVA([
+    'acc_name' => 'NGUYEN VAN A',
+    'acc_type' => 1,                  // 1=Dynamic, 2=Static
+    'mrc_order_id' => 'ORDER_001',
+    'collect_amount_min' => 100000,    // Required khi acc_type=1
+    'collect_amount_max' => 100000,    // Required
+    'store_code' => 'STORE_001',      // Optional: Mã cửa hàng
+    'staff_code' => 'STAFF_001',      // Optional: Mã nhân viên
+    'bank_code' => 'BIDV',            // Optional: Mã ngân hàng
+    'memo' => 'Ghi chú',              // Optional: Ghi chú (max 255)
+    'expire_date' => '2026-12-31 23:59:59', // Required khi acc_type=2
+]);
+```
+
+```bash
+php examples/va_merchant_hosted/08_merchant_create_va.php
+```
+
+---
+
+## 🔷 API 10: Cập nhật VA (Merchant Hosted)
+
+```php
+<?php
+require_once __DIR__ . '/baokim-sdk/autoload.php';
+
+use Baokim\B2B\BaokimAuth;
+use Baokim\B2B\MerchantHosted\BaokimMerchantVA;
+
+$directAuth = BaokimAuth::forDirectConnection();
+$vaService = new BaokimMerchantVA($directAuth->getToken());
+
+$result = $vaService->updateVA('ORDER_001', [
+    'acc_name' => 'NGUYEN VAN B',          // Optional
+    'collect_amount_min' => 50000,          // Optional
+    'collect_amount_max' => 500000,         // Optional
+    'expire_date' => '2027-06-30 23:59:59', // Optional
+]);
+
+echo "Success: " . ($result['success'] ? 'TRUE' : 'FALSE') . "\n";
+print_r($result);
+```
+
+```bash
+php examples/va_merchant_hosted/09_merchant_update_va.php ORDER_001
+```
+
+---
+
+## 🔷 API 11: Tra cứu chi tiết VA (Merchant Hosted)
+
+```php
+<?php
+require_once __DIR__ . '/baokim-sdk/autoload.php';
+
+use Baokim\B2B\BaokimAuth;
+use Baokim\B2B\MerchantHosted\BaokimMerchantVA;
+
+$directAuth = BaokimAuth::forDirectConnection();
+$vaService = new BaokimMerchantVA($directAuth->getToken());
+
+$result = $vaService->detailVA('00812345678901', [
+    'start_date' => '2026-01-01 00:00:00',  // Optional
+    'end_date' => '2026-12-31 23:59:59',    // Optional
+    'current_page' => 1,                     // Optional
+    'per_page' => 20,                        // Optional
+]);
+
+echo "Success: " . ($result['success'] ? 'TRUE' : 'FALSE') . "\n";
+print_r($result);
+```
+
+```bash
+php examples/va_merchant_hosted/10_merchant_detail_va.php 00812345678901
+```
+
+---
+
 ## 🔷 API 8: Xử lý Webhook từ Baokim (Verify Signature)
 
 Khi có giao dịch thành công (thanh toán, hoàn tiền, VA...), **Baokim sẽ gửi HTTP POST** đến webhook URL của merchant.
@@ -355,7 +476,7 @@ try {
             error_log("VA Payment: order={$mrcOrderId}, amount={$amount}");
         }
         
-        // Basic Pro payment
+        // Basic Pro payment    
         if (isset($paymentData['order'])) {
             $mrcOrderId = $paymentData['order']['mrc_order_id'] ?? null;
             // TODO: Cập nhật trạng thái đơn hàng trong database
@@ -408,6 +529,13 @@ Merchant cần trả về JSON với `code = 0` khi xử lý thành công:
 | Tạo VA | `/b2b/core/api/ext/mm/bank-transfer/create` |
 | Cập nhật VA | `/b2b/core/api/ext/mm/bank-transfer/update` |
 | Tra cứu VA | `/b2b/core/api/ext/mm/bank-transfer/detail` |
+
+### VA Merchant Hosted (Direct)
+| API | Endpoint |
+|-----|----------|
+| Tạo VA | `/b2b/core/api/merchant-hosted/bank-transfer/create` |
+| Cập nhật VA | `/b2b/core/api/merchant-hosted/bank-transfer/update` |
+| Tra cứu VA | `/b2b/core/api/merchant-hosted/bank-transfer/detail` |
 
 ### Direct Connection
 | API | Endpoint |
