@@ -3,9 +3,7 @@
  * Class BaokimMerchantVA
  * 
  * Quản lý Virtual Account qua Baokim B2B API (Merchant Hosted / Direct Connection)
- * 
- * Kết nối Merchant Hosted dùng merchant_code (không cần master/sub merchant)
- * 
+ *
  * Bao gồm:
  * - Tạo VA: POST /b2b/core/api/merchant-hosted/bank-transfer/create
  * - Cập nhật VA: POST /b2b/core/api/merchant-hosted/bank-transfer/update
@@ -27,25 +25,25 @@ class BaokimMerchantVA
      * @var HttpClient
      */
     private $httpClient;
-    
+
     /**
      * @var string|null
      */
     private $token;
-    
+
     /**
      * API Endpoints (Merchant Hosted)
      */
     const ENDPOINT_CREATE_VA = '/b2b/core/api/merchant-hosted/bank-transfer/create';
     const ENDPOINT_UPDATE_VA = '/b2b/core/api/merchant-hosted/bank-transfer/update';
     const ENDPOINT_DETAIL_VA = '/b2b/core/api/merchant-hosted/bank-transfer/detail';
-    
+
     /**
      * Loại VA
      */
-    const ACC_TYPE_DYNAMIC = 1;  // VA động - mỗi đơn hàng 1 VA duy nhất
-    const ACC_TYPE_STATIC = 2;   // VA tĩnh - 1 VA dùng cho nhiều giao dịch
-    
+    const ACC_TYPE_DYNAMIC = 1; // VA động - mỗi đơn hàng 1 VA duy nhất
+    const ACC_TYPE_STATIC = 2; // VA tĩnh - 1 VA dùng cho nhiều giao dịch
+
     /**
      * Constructor
      * 
@@ -57,7 +55,7 @@ class BaokimMerchantVA
         $this->token = $token;
         $this->httpClient = $httpClient ?: new HttpClient();
     }
-    
+
     /**
      * Tạo Virtual Account mới (Merchant Hosted)
      * 
@@ -84,12 +82,12 @@ class BaokimMerchantVA
                 throw new \Exception("Missing required field: {$field}");
             }
         }
-        
+
         // Validate acc_type
         if (!in_array($vaData['acc_type'], [self::ACC_TYPE_DYNAMIC, self::ACC_TYPE_STATIC])) {
             throw new \Exception("Invalid acc_type. Must be 1 (Dynamic) or 2 (Static)");
         }
-        
+
         // Dynamic VA phải có collect_amount_min và phải bằng collect_amount_max
         if ($vaData['acc_type'] == self::ACC_TYPE_DYNAMIC) {
             if (!isset($vaData['collect_amount_min'])) {
@@ -99,12 +97,12 @@ class BaokimMerchantVA
                 throw new \Exception("collect_amount_min must equal collect_amount_max for Dynamic VA (acc_type=1)");
             }
         }
-        
+
         // Static VA phải có expire_date
         if ($vaData['acc_type'] == self::ACC_TYPE_STATIC && !isset($vaData['expire_date'])) {
             throw new \Exception("expire_date is required for Static VA (acc_type=2)");
         }
-        
+
         // Chuẩn bị request body
         $requestBody = [
             'request_id' => $this->generateRequestId(),
@@ -115,7 +113,7 @@ class BaokimMerchantVA
             'mrc_order_id' => $vaData['mrc_order_id'],
             'collect_amount_max' => (int)$vaData['collect_amount_max'],
         ];
-        
+
         // Thêm các trường optional
         if (isset($vaData['collect_amount_min'])) {
             $requestBody['collect_amount_min'] = (int)$vaData['collect_amount_min'];
@@ -135,10 +133,10 @@ class BaokimMerchantVA
         if (isset($vaData['memo']) && !empty($vaData['memo'])) {
             $requestBody['memo'] = $vaData['memo'];
         }
-        
+
         return $this->sendRequest(self::ENDPOINT_CREATE_VA, $requestBody);
     }
-    
+
     /**
      * Cập nhật thông tin VA (Merchant Hosted)
      * 
@@ -157,7 +155,7 @@ class BaokimMerchantVA
         if (empty($mrcOrderId)) {
             throw new \Exception("Missing required field: mrc_order_id");
         }
-        
+
         // Chuẩn bị request body
         $requestBody = [
             // === REQUIRED FIELDS ===
@@ -165,30 +163,30 @@ class BaokimMerchantVA
             'request_time' => date('Y-m-d H:i:s'),
             'merchant_code' => Config::get('direct_merchant_code') ?: Config::get('merchant_code'),
             'mrc_order_id' => $mrcOrderId,
-            
+
             // === OPTIONAL FIELDS ===
-            'acc_name' => isset($updateData['acc_name']) 
-                ? $updateData['acc_name'] 
-                : null,
-            'collect_amount_min' => isset($updateData['collect_amount_min']) 
-                ? (int)$updateData['collect_amount_min'] 
-                : null,
-            'collect_amount_max' => isset($updateData['collect_amount_max']) 
-                ? (int)$updateData['collect_amount_max'] 
-                : null,
-            'expire_date' => isset($updateData['expire_date']) 
-                ? $updateData['expire_date'] 
-                : null,
+            'acc_name' => isset($updateData['acc_name'])
+            ? $updateData['acc_name']
+            : null,
+            'collect_amount_min' => isset($updateData['collect_amount_min'])
+            ? (int)$updateData['collect_amount_min']
+            : null,
+            'collect_amount_max' => isset($updateData['collect_amount_max'])
+            ? (int)$updateData['collect_amount_max']
+            : null,
+            'expire_date' => isset($updateData['expire_date'])
+            ? $updateData['expire_date']
+            : null,
         ];
-        
+
         // Loại bỏ các field null
-        $requestBody = array_filter($requestBody, function($value) {
+        $requestBody = array_filter($requestBody, function ($value) {
             return $value !== null;
         });
-        
+
         return $this->sendRequest(self::ENDPOINT_UPDATE_VA, $requestBody);
     }
-    
+
     /**
      * Tra cứu chi tiết VA và giao dịch (Merchant Hosted)
      * 
@@ -207,7 +205,7 @@ class BaokimMerchantVA
         if (empty($accNo)) {
             throw new \Exception("Missing required field: acc_no");
         }
-        
+
         // Chuẩn bị request body
         $requestBody = [
             // === REQUIRED FIELDS ===
@@ -215,30 +213,30 @@ class BaokimMerchantVA
             'request_time' => date('Y-m-d H:i:s'),
             'merchant_code' => Config::get('direct_merchant_code') ?: Config::get('merchant_code'),
             'acc_no' => $accNo,
-            
+
             // === OPTIONAL FIELDS ===
-            'start_date' => isset($queryData['start_date']) 
-                ? $queryData['start_date'] 
-                : null,
-            'end_date' => isset($queryData['end_date']) 
-                ? $queryData['end_date'] 
-                : null,
-            'current_page' => isset($queryData['current_page']) 
-                ? (int)$queryData['current_page'] 
-                : null,
-            'per_page' => isset($queryData['per_page']) 
-                ? (int)$queryData['per_page'] 
-                : null,
+            'start_date' => isset($queryData['start_date'])
+            ? $queryData['start_date']
+            : null,
+            'end_date' => isset($queryData['end_date'])
+            ? $queryData['end_date']
+            : null,
+            'current_page' => isset($queryData['current_page'])
+            ? (int)$queryData['current_page']
+            : null,
+            'per_page' => isset($queryData['per_page'])
+            ? (int)$queryData['per_page']
+            : null,
         ];
-        
+
         // Loại bỏ các field null
-        $requestBody = array_filter($requestBody, function($value) {
+        $requestBody = array_filter($requestBody, function ($value) {
             return $value !== null;
         });
-        
+
         return $this->sendRequest(self::ENDPOINT_DETAIL_VA, $requestBody);
     }
-    
+
     /**
      * Tạo Dynamic VA nhanh (Merchant Hosted)
      * 
@@ -258,14 +256,14 @@ class BaokimMerchantVA
             'collect_amount_min' => $amount,
             'collect_amount_max' => $amount,
         ];
-        
+
         if (!empty($memo)) {
             $vaData['memo'] = $memo;
         }
-        
+
         return $this->createVA($vaData);
     }
-    
+
     /**
      * Tạo Static VA nhanh (Merchant Hosted)
      * 
@@ -286,14 +284,14 @@ class BaokimMerchantVA
             'expire_date' => $expireDate,
             'collect_amount_max' => $collectAmountMax,
         ];
-        
+
         if ($collectAmountMin !== null) {
             $vaData['collect_amount_min'] = $collectAmountMin;
         }
-        
+
         return $this->createVA($vaData);
     }
-    
+
     /**
      * Gửi request tới Baokim API (Merchant Hosted dùng Direct Connection auth)
      * 
@@ -310,27 +308,27 @@ class BaokimMerchantVA
             $this->token = $auth->getToken();
         }
         $authHeader = "Bearer {$this->token}";
-        
+
         // Ký request body
         $jsonBody = json_encode($requestBody, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $signature = SignatureHelper::sign($jsonBody);
-        
+
         // Gửi request
         $response = $this->httpClient->postRaw($endpoint, $jsonBody, [
             'Authorization' => $authHeader,
             'Signature' => $signature,
         ]);
-        
+
         // Xử lý response
         if (!$response['success']) {
             throw new \Exception('API request failed: ' . $response['error']);
         }
-        
+
         $data = $response['data'];
-        
+
         // Kiểm tra response code (0, 100, 200 đều là thành công)
         $code = isset($data['code']) ? $data['code'] : null;
-        
+
         return [
             'success' => $code === 0 || $code === 100 || $code === 200,
             'code' => $code,
@@ -339,7 +337,7 @@ class BaokimMerchantVA
             'raw_response' => $data,
         ];
     }
-    
+
     /**
      * Tạo request ID duy nhất
      * 
