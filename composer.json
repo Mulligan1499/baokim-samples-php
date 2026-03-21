@@ -1,0 +1,13 @@
+{
+    "name": "baokim/b2b-php-example",
+    "description": "Baokim B2B PHP Example - Sample code tích hợp API Baokim",
+    "require": {
+        "php": ">=7.4",
+        "vlucas/phpdotenv": "^5.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Baokim\\": "src/"
+        }
+    }
+}

@@ -2,6 +2,8 @@
 
 # Dependencies - không commit
 /vendor/
+composer.phar
+composer.lock
 
 # Config thực - không commit
 src/config/config.php
