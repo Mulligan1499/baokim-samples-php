@@ -5,6 +5,7 @@
 
 # Config thực - không commit
 src/config/config.php
+.env
 
 # Keys - không commit private key
 src/keys/merchant_private.pem
